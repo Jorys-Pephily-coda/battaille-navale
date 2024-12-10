@@ -169,37 +169,3 @@ const Naval = function naval() {
 }
 Naval();
 */
-
-onClickTds() {
-    this.grid.forEach(td => {
-        td.addEventListener('click', this.onClickTd.bind(this))
-    });
-}
-onClickTd(event) {
-    const td = event.target;
-    const elH2  = document.querySelector('h2');
-    const id = parseInt(td.dataset.id);
-
-    elH2.innerHTML = `${this.setCurrentPlayer(this.currentPlayer)}'s Turn`;
-
-    if (this.grid[id].textContent) return;
-
-    this.grid[id].textContent = this.currentPlayer;
-    this.currentPlayer = this.setCurrentPlayer(this.currentPlayer);
-
-    if (this.checkWin()) {
-        alert(`${this.setCurrentPlayer(this.currentPlayer)} a gagnÃ© !`);
-        this.isGameOver = true;
-    }
-
-    if (this.checkDraw()) {
-        alert("Match nul !");
-        this.isGameOver = true;
-    }
-
-    if (this.isGameOver) {
-        this.endGame();
-
-        return;
-    }
-}
