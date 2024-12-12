@@ -28,14 +28,11 @@ class Battleship {
             for (let j = -1; j < 10; j++) {
                 if (i == -1 && j == -1) {
                     tableHTML += `<th></th>`;
-                }
-                if (i == -1 && j != -1) {
-                    tableHTML += `<th>${j}</th>`;
-                } 
-                if (j == -1 && i != -1) {
+                } else if (i == -1 && j != -1) {
+                    tableHTML += `<th>${j + 1}</th>`;
+                } else if (j == -1 && i != -1) {
                     tableHTML += `<th>&#${65 + i}</th>`;
-                } 
-                if (i != -1 && j != -1) {
+                } else {
                     tableHTML += `<td data-coord="${i}-${j}" id="${this.grid[i][j]}"></td>`;
                 }
             }
@@ -97,21 +94,21 @@ class Battleship {
         }
 
         this.highlight(row, col);
-        this.checkWin();
+        //this.checkWin();
     }
 
-    checkWin() {
+    /*checkWin() {
         const remainingShips = this.grid.flat().filter(cell => cell > 0);
         if (remainingShips.length === 0) {
             alert('Tous les bateaux sont coulés ! Vous avez gagné !');
             this.isGameOver = true;
         }
-    }
+    }*/
 
     run() {
         this.render();
         this.onClickTds();
-        this.checkWin();
+        //this.checkWin();
     }
 }
 
