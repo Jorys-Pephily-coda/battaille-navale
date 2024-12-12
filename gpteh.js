@@ -47,10 +47,18 @@ class Battleship {
         const maxRows = this.grid.length;
         const maxCols = this.grid[0].length;
 
-        if (row > 0) adjacent.push([row - 1, col]); // Haut
-        if (row < maxRows - 1) adjacent.push([row + 1, col]); // Bas
-        if (col > 0) adjacent.push([row, col - 1]); // Gauche
-        if (col < maxCols - 1) adjacent.push([row, col + 1]); // Droite
+        if (row > 0){
+            adjacent.push([row - 1, col]); // Haut
+        } 
+        if (row < maxRows - 1) {
+            adjacent.push([row + 1, col]); // Bas
+        } 
+        if (col > 0) {
+            adjacent.push([row, col - 1]); // Gauche
+        }
+        if (col < maxCols - 1) {
+            adjacent.push([row, col + 1]); // Droite
+        }
 
         return adjacent;
     }
