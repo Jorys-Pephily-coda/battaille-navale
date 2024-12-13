@@ -19,7 +19,8 @@ class Battleship {
 
         this.run();
     }
-    render() { 
+
+    render() {     
         let tableHTML = '<table>';
         for (let i = -1; i < 10; i++) {
             tableHTML += "<tr>";
@@ -41,6 +42,43 @@ class Battleship {
         this.elBody.innerHTML = tableHTML;
     }
 
+    getAdjacent(row, col) {
+        const adjacent = [];
+        const maxRows = this.grid.length;
+        const maxCols = this.grid[0].length;
+
+        if (row > 0 && (this.grid[row][col] == this.grid[row - 1][col])) {
+            adjacent.push([row - 1, col]); // Haut
+        } 
+        if (row < (maxRows - 1) && (this.grid[row][col] == this.grid[row + 1][col])) {
+            adjacent.push([row + 1, col]); // Bas
+        }
+        if (adjacent[0] == null){
+            if (col > 0 && (this.grid[row][col] == this.grid[row][col - 1])) {
+                adjacent.push([row, col - 1]); // Gauche
+            }
+            if (col < (maxCols - 1) && (this.grid[row][col] == this.grid[row][col + 1])) {
+                adjacent.push([row, col + 1]); // Droite
+            }
+        }
+
+        return adjacent;
+    }
+
+    highlight(row, col) {
+        const td = event.target;
+        const adjacentCoords = this.getAdjacent(row, col);
+        if (td.textContent == "O") {
+            adjacentCoords.forEach(([adjRow, adjCol]) => {
+            const cell = document.querySelector(`td[data-coord="${adjRow}-${adjCol}"]`);
+            if (cell && !(cell.style.backgroundColor == 'red') && !(cell.style.backgroundColor == 'blue')) {
+                cell.style.backgroundColor = 'lightgreen';
+            }
+        });
+        }
+
+    }
+
     onClickTds() {
         const cells = Array.from(document.querySelectorAll('td'));
         cells.forEach(td => {
@@ -48,31 +86,15 @@ class Battleship {
         });
     }
 
-    highlight(row, col) {
-        const td = event.target;
-        const cell = document.querySelector(`td[data-coord="${row}-${col}"]`);
-
-        if (cell && !(cell.style.backgroundColor == 'red') && !(cell.style.backgroundColor == 'blue')) {
-                cell.style.backgroundColor = 'lightgreen';
-        }
-    }
-
-    onClickTds(event){
+    onClickTd(event) {
         const td = event.target;
         const coord = td.dataset.coord;
         const [row, col] = coord.split('-').map(Number);
-        const btnConfirm = document.getElementById("post-data");
-        btnConfirm.addEventListener("click", () => this.confirmChoice());
-
 
         if (td.classList.contains('clicked')) return;
 
         td.classList.add('clicked');
-        this.highlight(row, col);
-        this.confirmChoice(row,col/*,*/);
-    }
 
-    async confirmChoice(row,col/*,idShip*/){
         if (this.grid[row][col] > 0) {
             td.textContent = "O";
             td.style.backgroundColor = 'red';
@@ -80,27 +102,36 @@ class Battleship {
             td.textContent = "X";
             td.style.backgroundColor = 'blue';
         }
-        const data = {
-            "row-grid": row,
-            "column-grid": col,
-            "id-type-ship": this.grid[row][col],
-            /*"id-ship": idShip,*/
-          };
-        
-          await fetch("./post_user.php", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-          })
-            .then((response) => response.json())
-            .then((data) => console.log("Réponse PHP :", data));
+
+        this.highlight(row, col);
+        this.checkWin();
     }
 
+    checkWin(){
+        let check = 1;
+        for (let row = 0; row < this.grid.length; row = row + 1){
+            for (let col = 0; col < this.grid[row].length; col = col + 1){
+                if (!(this.grid[row][col] == 0)){
+                    const cell = document.querySelector(`td[data-coord="${row}-${col}"]`);
+                    if (cell && (cell.style.backgroundColor == 'red')) {
+                        check = check;
+                        console.log(check);
+                    } else{
+                        check = 0;
+                        console.log(check);
+                        break;
+                    }
+                }
+            }
+        }
+        if (check === 1){
+            alert("bravo, vous avez gagné");
+        }
+    }
     run() {
         this.render();
         this.onClickTds();
-        //this.checkWin();
     }
 }
+
+const bat = new Battleship();
