@@ -94,10 +94,8 @@ class Battleship {
         td.classList.add('clicked');
 
         if (this.grid[row][col] > 0) {
-            td.textContent = "O";
             td.style.backgroundColor = 'red';
         } else {
-            td.textContent = "X";
             td.style.backgroundColor = 'blue';
         }
 
