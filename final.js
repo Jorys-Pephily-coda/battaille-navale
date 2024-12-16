@@ -1,39 +1,53 @@
-'use strict';
-
 class Battleship {
-    constructor() {
+    constructor(player = 'player1') {
         this.elBody = document.querySelector('body');
         this.isGameOver = false;
-        this.grid = [
-            [3, 0, 0, 0, 0, 0, 0, 2, 2, 0],
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [3, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 2, 2, 0, 0, 0],
-            [0, 0, 0, 0, 0, 5, 0, 4, 0, 0],
-            [0, 0, 0, 0, 0, 5, 0, 4, 0, 0],
-            [0, 0, 0, 0, 0, 5, 0, 4, 0, 0],
-            [3, 3, 3, 0, 0, 5, 0, 4, 0, 0],
-            [0, 0, 0, 0, 0, 5, 0, 0, 0, 0],
-            [0, 0, 0, 0, 5, 5, 5, 5, 5, 0]
-        ];
+        this.player = player; // Identifie le joueur courant ('player1' ou 'player2')
+        this.apiUrl = 'http://localhost/battleship_api.php'; // URL de l'API
 
-        this.run();
+        this.init();
     }
 
-    render() {     
+    async init() {
+        try {
+            this.run();
+        } catch (error) {
+            console.error('Erreur lors de l’initialisation :', error);
+        }
+    }
+
+    async checkCell(row, col) {
+        // Appeler l'API pour vérifier si une case contient un bateau
+        try {
+            const response = await fetch(`${this.apiUrl}?action=checkCell&player=${this.player}&row=${row}&col=${col}`);
+            const data = await response.json();
+
+            if (data.success) {
+                return data.hasShip; // Retourne true ou false selon la réponse de l'API
+            } else {
+                console.error('Erreur de l’API lors de la vérification de la case :', data.message);
+                return false;
+            }
+        } catch (error) {
+            console.error('Erreur de connexion avec l’API :', error);
+            return false;
+        }
+    }
+
+    render() {
         let tableHTML = '<table>';
         for (let i = -1; i < 10; i++) {
             tableHTML += "<tr>";
-        
+
             for (let j = -1; j < 10; j++) {
-                if (i == -1 && j == -1) {
+                if (i === -1 && j === -1) {
                     tableHTML += `<th></th>`;
-                } else if (i == -1 && j != -1) {
+                } else if (i === -1 && j !== -1) {
                     tableHTML += `<th>${j + 1}</th>`;
-                } else if (j == -1 && i != -1) {
+                } else if (j === -1 && i !== -1) {
                     tableHTML += `<th>&#${65 + i}</th>`;
                 } else {
-                    tableHTML += `<td data-coord="${i}-${j}" id="${this.grid[i][j]}"></td>`;
+                    tableHTML += `<td data-coord="${i}-${j}" class="grid-cell"></td>`;
                 }
             }
             tableHTML += "</tr>";
@@ -42,51 +56,14 @@ class Battleship {
         this.elBody.innerHTML = tableHTML;
     }
 
-    getAdjacent(row, col) {
-        const adjacent = [];
-        const maxRows = this.grid.length;
-        const maxCols = this.grid[0].length;
-
-        if (row > 0 && (this.grid[row][col] == this.grid[row - 1][col])) {
-            adjacent.push([row - 1, col]); // Haut
-        } 
-        if (row < (maxRows - 1) && (this.grid[row][col] == this.grid[row + 1][col])) {
-            adjacent.push([row + 1, col]); // Bas
-        }
-        if (adjacent[0] == null){
-            if (col > 0 && (this.grid[row][col] == this.grid[row][col - 1])) {
-                adjacent.push([row, col - 1]); // Gauche
-            }
-            if (col < (maxCols - 1) && (this.grid[row][col] == this.grid[row][col + 1])) {
-                adjacent.push([row, col + 1]); // Droite
-            }
-        }
-
-        return adjacent;
-    }
-
-    highlight(row, col) {
-        const td = event.target;
-        const adjacentCoords = this.getAdjacent(row, col);
-        if (td.textContent == "O") {
-            adjacentCoords.forEach(([adjRow, adjCol]) => {
-            const cell = document.querySelector(`td[data-coord="${adjRow}-${adjCol}"]`);
-            if (cell && !(cell.style.backgroundColor == 'red') && !(cell.style.backgroundColor == 'blue')) {
-                cell.style.backgroundColor = 'lightgreen';
-            }
-        });
-        }
-
-    }
-
     onClickTds() {
-        const cells = Array.from(document.querySelectorAll('td'));
+        const cells = Array.from(document.querySelectorAll('.grid-cell'));
         cells.forEach(td => {
             td.addEventListener('click', this.onClickTd.bind(this));
         });
     }
 
-    onClickTd(event) {
+    async onClickTd(event) {
         const td = event.target;
         const coord = td.dataset.coord;
         const [row, col] = coord.split('-').map(Number);
@@ -95,43 +72,43 @@ class Battleship {
 
         td.classList.add('clicked');
 
-        if (this.grid[row][col] > 0) {
-            td.textContent = "O";
-            td.style.backgroundColor = 'red';
-        } else {
-            td.textContent = "X";
-            td.style.backgroundColor = 'blue';
-        }
+        try {
+            const hasShip = await this.checkCell(row, col);
 
-        this.highlight(row, col);
-        this.checkWin();
-    }
-
-    checkWin(){
-        let check = 1;
-        for (let row = 0; row < this.grid.length; row = row + 1){
-            for (let col = 0; col < this.grid[row].length; col = col + 1){
-                if (!(this.grid[row][col] == 0)){
-                    const cell = document.querySelector(`td[data-coord="${row}-${col}"]`);
-                    if (cell && (cell.style.backgroundColor == 'red')) {
-                        check = check;
-                        console.log(check);
-                    } else{
-                        check = 0;
-                        console.log(check);
-                        break;
-                    }
-                }
+            if (hasShip) {
+                td.textContent = "O";
+                td.style.backgroundColor = 'red'; // Indique que la case contenait un bateau
+            } else {
+                td.textContent = "X";
+                td.style.backgroundColor = 'blue'; // Indique que la case était vide
             }
-        }
-        if (check === 1){
-            alert("bravo, vous avez gagné");
+
+            this.checkWin();
+        } catch (error) {
+            console.error('Erreur lors du clic sur une case :', error);
         }
     }
+
+    async checkWin() {
+        // Appeler l'API pour vérifier si tous les bateaux ont été coulés
+        try {
+            const response = await fetch(`${this.apiUrl}?action=checkWin&player=${this.player}`);
+            const data = await response.json();
+
+            if (data.success && data.allSunk) {
+                alert("Bravo, vous avez gagné !");
+                this.isGameOver = true;
+            }
+        } catch (error) {
+            console.error('Erreur lors de la vérification de la victoire :', error);
+        }
+    }
+
     run() {
         this.render();
         this.onClickTds();
     }
 }
 
-const bat = new Battleship();
+// Initialisation du jeu pour le joueur 1
+const bat = new Battleship('player1');
