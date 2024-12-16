@@ -20,7 +20,26 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
 
     // Préparation de la requête
-    $sql = "INSERT INTO `grid-player1` (`id`, `row-grid`, `column-grid`, `id-type-ship`, `id-ship`) VALUES ";
+    $sql = "DROP TABLE IF EXISTS `grid-player1`;
+    CREATE TABLE IF NOT EXISTS `grid-player1` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `row-grid` int DEFAULT NULL,
+      `column-grid` int DEFAULT NULL,
+      `id-type-ship` int DEFAULT NULL,
+      `id-ship` int DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    );
+    
+    DROP TABLE IF EXISTS `grid-player2`;
+    CREATE TABLE IF NOT EXISTS `grid-player2` (
+      `id` int NOT NULL AUTO_INCREMENT,
+      `row-grid` int DEFAULT NULL,
+      `column-grid` int DEFAULT NULL,
+      `id-type-ship` int DEFAULT NULL,
+      `id-ship` int DEFAULT NULL,
+      PRIMARY KEY (`id`)
+    );";
+    $sql .= "INSERT INTO `grid-player1` (`id`, `row-grid`, `column-grid`, `id-type-ship`, `id-ship`) VALUES ";
     $values = [];
 
     for ($i = 0; $i < 10; $i++) {
