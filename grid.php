@@ -13,50 +13,54 @@ $grid = [
 ];
 
 try {
+    // Connexion à la base de données
     $host = 'localhost';
     $dbname = 'battleship';
     $username = 'root';
     $password = '';
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Préparation de la requête
-    $sql = "DROP TABLE IF EXISTS `grid-player1`;
-    CREATE TABLE IF NOT EXISTS `grid-player1` (
-      `id` int NOT NULL AUTO_INCREMENT,
-      `row-grid` int DEFAULT NULL,
-      `column-grid` int DEFAULT NULL,
-      `id-type-ship` int DEFAULT NULL,
-      `id-ship` int DEFAULT NULL,
-      PRIMARY KEY (`id`)
-    );
-    
-    DROP TABLE IF EXISTS `grid-player2`;
-    CREATE TABLE IF NOT EXISTS `grid-player2` (
-      `id` int NOT NULL AUTO_INCREMENT,
-      `row-grid` int DEFAULT NULL,
-      `column-grid` int DEFAULT NULL,
-      `id-type-ship` int DEFAULT NULL,
-      `id-ship` int DEFAULT NULL,
-      PRIMARY KEY (`id`)
-    );";
-    $sql .= "INSERT INTO `grid-player1` (`id`, `row-grid`, `column-grid`, `id-type-ship`, `id-ship`) VALUES ";
-    $values = [];
+    // Supprimer et recréer les tables
+    $pdo->exec("
+        DROP TABLE IF EXISTS `grid-player1`;
+        CREATE TABLE `grid-player1` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `row-grid` INT DEFAULT NULL,
+            `column-grid` INT DEFAULT NULL,
+            `id-type-ship` INT DEFAULT NULL,
+            `id-ship` INT DEFAULT NULL,
+            PRIMARY KEY (`id`)
+        );
 
-    for ($i = 0; $i < 10; $i++) {
-        $under_grid = $grid[$i];
-        for ($j = 0; $j < 10; $j++) {
-            $values[] = "(NULL, $i, $j, {$under_grid[$j]}, NULL)";
+        DROP TABLE IF EXISTS `grid-player2`;
+        CREATE TABLE `grid-player2` (
+            `id` INT NOT NULL AUTO_INCREMENT,
+            `row-grid` INT DEFAULT NULL,
+            `column-grid` INT DEFAULT NULL,
+            `id-type-ship` INT DEFAULT NULL,
+            `id-ship` INT DEFAULT NULL,
+            PRIMARY KEY (`id`)
+        );
+    ");
+
+    // Préparer l'insertion des données dans la table `grid-player1`
+    $sql = "INSERT INTO `grid-player1` (`row-grid`, `column-grid`, `id-type-ship`, `id-ship`) 
+            VALUES (:row, :col, :idTypeShip, NULL)";
+    $stmt = $pdo->prepare($sql);
+
+    // Boucle pour insérer chaque cellule de la grille
+    foreach ($grid as $rowIndex => $row) {
+        foreach ($row as $colIndex => $value) {
+            $stmt->execute([
+                ':row' => $rowIndex,
+                ':col' => $colIndex,
+                ':idTypeShip' => $value
+            ]);
         }
     }
 
-    // Concaténer les valeurs et éviter la virgule en trop
-    $sql .= implode(", ", $values) . ";";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-
-    echo "Données insérées avec succès !";
+    echo "Données insérées avec succès dans la table `grid-player1` !";
 } catch (PDOException $e) {
     echo "Erreur de connexion ou d'exécution de la requête : " . $e->getMessage();
 }
-?>
