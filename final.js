@@ -7,7 +7,7 @@ class Battleship {
         this.nbrShip = 0;   //nombre bateaux dans grille
         this.isGameOver = false;
         this.player = player; // Identifie le joueur courant ('player1' ou 'player2')
-        this.apiUrl = 'http://localhost/grid.php'; // URL de l'API
+        this.apiUrl = 'http://localhost/battleship_api.php'; // URL de l'API
 
         this.init();
     }
@@ -146,7 +146,7 @@ class Battleship {
             console.log("Grille convertie en tableau JavaScript :", gridArray);
     
             this.grid = gridArray;
-            fetch('grid1.php', {
+            fetch('grid.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json', // Spécifie que les données sont au format JSON
@@ -166,6 +166,7 @@ class Battleship {
             .catch(error => {
                 console.error('Erreur lors de la requête POST :', error);
             });
+            this.run();
         };
     }
 
@@ -242,7 +243,7 @@ class Battleship {
         }
     }
 
-    async checkWin() {
+    /*async checkWin() {
         // Appeler l'API pour vérifier si tous les bateaux ont été coulés
         try {
             const response = await fetch(`${this.apiUrl}?action=checkWin&player=${this.player}`);
@@ -255,12 +256,13 @@ class Battleship {
         } catch (error) {
             console.error('Erreur lors de la vérification de la victoire :', error);
         }
-    }
+    }*/
 
     run() {
+        if  (this.grid.length === 0){
             this.renderCreateGrid();
             this.onClickTdsCreateGrid();
-        if  (!(this.grid.length === 0)){
+        } else {
             this.render();
             this.onClickTds();
         }
