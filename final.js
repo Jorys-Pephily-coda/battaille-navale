@@ -7,7 +7,7 @@ class Battleship {
         this.nbrShip = 0;   //nombre bateaux dans grille
         this.isGameOver = false;
         this.player = player; // Identifie le joueur courant ('player1' ou 'player2')
-        this.apiUrl = 'http://localhost/battleship_api.php'; // URL de l'API
+        this.apiUrl = 'http://localhost/grid.php'; // URL de l'API
 
         this.init();
     }
@@ -258,12 +258,15 @@ class Battleship {
     }
 
     run() {
-        this.render.createGrid();
-        this.onClickTdsCreateGrid();
-        //this.render();
-        //this.onClickTds();
+            this.renderCreateGrid();
+            this.onClickTdsCreateGrid();
+        if  (!(this.grid.length === 0)){
+            this.render();
+            this.onClickTds();
+        }
     }
+    
 }
 
 // Initialisation du jeu pour le joueur 1
-const bat = new Battleship('player1');*
+const bat = new Battleship('player1');
