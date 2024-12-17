@@ -16,6 +16,41 @@ try {
     $action = isset($_GET['action']) ? $_GET['action'] : '';
 
     switch ($action) {
+        case 'checkCell':
+            // Récupérer les paramètres
+            $player = isset($_GET['player']) ? $_GET['player'] : 'player1';
+            $row = isset($_GET['row']) ? (int)$_GET['row'] : null;
+            $col = isset($_GET['col']) ? (int)$_GET['col'] : null;
+        
+            if ($row === null || $col === null) {
+                echo json_encode(['success' => false, 'message' => 'Coordonnées manquantes.']);
+                exit;
+            }
+        
+            $table = $player === 'player1' ? 'grid-player1' : 'grid-player2';
+        
+            // Vérifier si la cellule contient un bateau
+            $stmt = $pdo->prepare("SELECT `id-type-ship` FROM `$table` WHERE `row-grid` = :row AND `column-grid` = :col LIMIT 1");
+            $stmt->execute([':row' => $row, ':col' => $col]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+            if ($result) {
+                echo json_encode(['success' => true, 'hasShip' => $result['id-type-ship'] > 0]);
+            } else {
+                echo json_encode(['success' => true, 'hasShip' => false]);
+            }
+            break;        
+
+            case 'checkWin':
+                $player = isset($_GET['player']) ? $_GET['player'] : 'player1';
+                $table = $player === 'player1' ? 'grid-player1' : 'grid-player2';
+            
+                // Vérifier si des bateaux non touchés existent encore
+                $stmt = $pdo->query("SELECT COUNT(*) AS remainingShips FROM `$table` WHERE `id-type-ship` > 0");
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                echo json_encode(['totalShipCells' => (int)$result['totalShipCells']]);
+                break;            
+    
         case 'getGrid':
             // Récupérer la grille d'un joueur (par exemple `player1` ou `player2`)
             $player = isset($_GET['player']) ? $_GET['player'] : 'player1';

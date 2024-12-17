@@ -18,7 +18,7 @@ class Battleship {
         } catch (error) {
             console.error('Erreur lors de l’initialisation :', error);
         }
-    }
+    }    
 
     renderCreateGrid() {
         let tableHTML = '<table>';
@@ -146,7 +146,7 @@ class Battleship {
             console.log("Grille convertie en tableau JavaScript :", gridArray);
     
             this.grid = gridArray;
-            fetch('grid.php', {
+            fetch(`${this.apiUrl}?action=setGrid`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json', // Spécifie que les données sont au format JSON
@@ -189,6 +189,7 @@ class Battleship {
     }
 
     render() {
+        this.recieveGrid();
         let tableHTML = '<table>';
         for (let i = -1; i < 10; i++) {
             tableHTML += "<tr>";
@@ -208,6 +209,19 @@ class Battleship {
         }
         tableHTML += '</table>';
         this.elBody.innerHTML = tableHTML;
+    }
+
+    async recieveGrid(){
+        // Récupérer la grille existante depuis l'API
+        const response = await fetch(`${this.apiUrl}?action=getGrid&player=${this.player}`);
+        const data = await response.json();
+                
+        if (data.success && data.grid) {
+            this.grid = data.grid; // Charger la grille récupérée
+            console.log("Grille récupérée depuis l'API :", this.grid);
+        } else {
+            console.log("Aucune grille existante trouvée.");
+        }
     }
 
     onClickTds() {
@@ -243,20 +257,33 @@ class Battleship {
         }
     }
 
-    /*async checkWin() {
-        // Appeler l'API pour vérifier si tous les bateaux ont été coulés
-        try {
-            const response = await fetch(`${this.apiUrl}?action=checkWin&player=${this.player}`);
-            const data = await response.json();
-
-            if (data.success && data.allSunk) {
-                alert("Bravo, vous avez gagné !");
-                this.isGameOver = true;
-            }
-        } catch (error) {
-            console.error('Erreur lors de la vérification de la victoire :', error);
+    async checkWin() {
+        // Récupérer le total des cellules contenant un bateau via l'API
+        const response = await fetch(`battleship_api.php?action=checkWin&player=${player}`);
+        const data = await response.json();
+        
+        if (!data || typeof data.totalShipCells !== 'number') {
+            alert('Erreur : Impossible de vérifier la victoire.');
+            return;
         }
-    }*/
+        
+        const totalShipCells = data.totalShipCells;
+        
+        // Compter les cases rouges (cases touchées)
+        const cells = Array.from(document.querySelectorAll('.grid-cell'));
+        let redCellCount = 0;
+    
+        cells.forEach(td => {
+            if (td.style.backgroundColor == 'red') { // Supposons que la classe 'hit' est appliquée aux cases rouges
+                redCellCount++;
+            }
+        });
+        
+        // Comparer et afficher un message de victoire si tous les bateaux sont touchés
+        if (redCellCount === totalShipCells) {
+            alert('Vous avez gagné !');
+        }   
+    }
 
     run() {
         if  (this.grid.length === 0){
